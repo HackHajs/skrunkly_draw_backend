@@ -1,5 +1,6 @@
 use axum::{Json, http::StatusCode, response::IntoResponse};
 use jsonwebtoken::errors::ErrorKind as JwtErr;
+use mongodb::error::{Error as MongoDBErr, ErrorKind as MdbErrKind};
 
 use exn::Exn;
 
@@ -15,7 +16,7 @@ pub struct Error {
 #[serde(rename_all = "snake_case")]
 pub enum Source {
     Authentication(AuthenticationError),
-    // Database(DatabaseError),
+    Database(DatabaseError),
     Internal,
 }
 
@@ -36,11 +37,14 @@ pub enum AuthenticationError {
     Unknown,
 }
 
-// #[derive(Clone, Copy, Debug, serde::Serialize, serde::Deserialize)]
-// #[serde(rename_all = "snake_case")]
-// pub enum DatabaseError {
-//
-// }
+#[derive(Clone, Copy, Debug, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum DatabaseError {
+    Serialization,
+    Deserialization,
+    Insertion,
+    Other,
+}
 
 impl Error {
     #[must_use]
@@ -51,13 +55,13 @@ impl Error {
         }
     }
 
-    // #[must_use]
-    // pub const fn database(reason: DatabaseError, message: String) -> Self {
-    //     Self {
-    //         error_type: Source::Database(reason),
-    //         message,
-    //     }
-    // }
+    #[must_use]
+    pub const fn database(reason: DatabaseError, message: String) -> Self {
+        Self {
+            error_type: Source::Database(reason),
+            message,
+        }
+    }
 
     #[must_use]
     pub const fn upstream(message: String) -> Self {
@@ -128,6 +132,32 @@ impl From<jsonwebtoken::errors::Error> for Error {
             _ => Self {
                 error_type: Source::Authentication(AuthenticationError::Unknown),
                 message: "Something unexpected happened during authentication".into(),
+            },
+        }
+    }
+}
+
+impl From<MongoDBErr> for Error {
+    fn from(value: mongodb::error::Error) -> Self {
+        match *value.kind {
+            MdbErrKind::BsonSerialization(err) => Self {
+                error_type: Source::Database(DatabaseError::Serialization),
+                message: format!("Serialization failed: {err:?}"),
+            },
+
+            MdbErrKind::BsonDeserialization(err) => Self {
+                error_type: Source::Database(DatabaseError::Deserialization),
+                message: format!("Deserialization failed: {err:?}"),
+            },
+
+            MdbErrKind::InsertMany(err) => Self {
+                error_type: Source::Database(DatabaseError::Insertion),
+                message: format!("Failed to insert: {err:?}"),
+            },
+
+            err => Self {
+                error_type: Source::Internal,
+                message: format!("{err:?}"),
             },
         }
     }

@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 #[derive(serde::Serialize, serde::Deserialize)]
-struct User {
+pub struct User {
     #[serde(rename = "_id")]
     id: Uuid,
     created_at: DateTime<Utc>,

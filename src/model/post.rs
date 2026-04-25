@@ -1,22 +1,49 @@
 use chrono::{DateTime, Utc};
+use mongodb::Collection;
 use uuid::Uuid;
 
-use crate::model::skrunkle::Skrunkle;
+use exn::ResultExt;
 
-#[derive(serde::Serialize, serde::Deserialize)]
+use crate::{error::Error, model::skrunkle::Skrunkle};
+
+#[derive(serde::Serialize, serde::Deserialize, Default)]
 pub struct Post {
-    #[serde(rename = "_id")]
+    #[serde(rename = "_id", skip_deserializing)]
     id: Uuid,
+    #[serde(skip_deserializing)]
+    user: Uuid,
+    #[serde(skip_deserializing)]
     created_at: DateTime<Utc>,
-    reply: Reply,
+    reply: Option<Reply>,
     mature: bool,
+    #[serde(skip_deserializing)]
     liked_by: Vec<Uuid>,
+    #[serde(skip_deserializing)]
     flagged_by: Vec<Uuid>,
     skrunkle: Skrunkle,
 }
 
-#[derive(serde::Deserialize, serde::Serialize)]
+#[derive(serde::Deserialize, serde::Serialize, Default)]
 struct Reply {
     parent: Uuid,
     on_feed: bool,
+}
+
+impl Post {
+    pub async fn insert(
+        mut self,
+        collection: &Collection<Self>,
+        user: Uuid,
+    ) -> exn::Result<(), Error> {
+        self.id = uuid::Uuid::new_v4();
+        self.user = user;
+        self.created_at = Utc::now();
+
+        collection
+            .insert_one(self)
+            .await
+            .or_raise(|| Error::upstream("Failed to insert post".into()))?;
+
+        Ok(())
+    }
 }

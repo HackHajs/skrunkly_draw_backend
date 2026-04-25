@@ -1,11 +1,9 @@
 use std::sync::Arc;
 
 use axum::{Json, extract::State, http::StatusCode};
-use mongodb::Collection;
 
 use crate::{
-    DATABASE_NAME, POST_COLLECTION_NAME, State as Bstate, authentication::Authenticated,
-    error::ErrorResponse, model::post::Post,
+    State as Bstate, authentication::Authenticated, error::ErrorResponse, model::post::Post,
 };
 
 /// Add the post to the database
@@ -18,11 +16,7 @@ pub async fn post(
     Authenticated { sub, .. }: Authenticated,
     Json(post): Json<Post>,
 ) -> Result<StatusCode, ErrorResponse> {
-    let posts: Collection<Post> = state
-        .0
-        .database(DATABASE_NAME)
-        .collection(POST_COLLECTION_NAME);
-    posts.insert_one(post).await.unwrap();
+    post.insert(&state.posts, sub).await?;
 
     Ok(StatusCode::OK)
 }
