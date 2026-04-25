@@ -39,7 +39,7 @@ pub enum AuthenticationError {
 // #[derive(Clone, Copy, Debug, serde::Serialize, serde::Deserialize)]
 // #[serde(rename_all = "snake_case")]
 // pub enum DatabaseError {
-// 
+//
 // }
 
 impl Error {
@@ -177,7 +177,6 @@ impl IntoResponse for ErrorResponse {
 
             // Database errors
             // TODO
-
 
             // Anything else
             _ => {
