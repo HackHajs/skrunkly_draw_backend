@@ -2157,6 +2157,7 @@ dependencies = [
  "chrono",
  "env_logger",
  "exn",
+ "futures-util",
  "jsonwebtoken",
  "log",
  "mongodb",

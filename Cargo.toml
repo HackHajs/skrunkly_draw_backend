@@ -14,6 +14,7 @@ jsonwebtoken = { version = "10", features = ["rust_crypto"] }
 
 # Database
 mongodb = { version = "3", features = ["snappy-compression"] }
+futures-util = "0.3"
 
 # Serde
 serde = { version = "1", features = ["serde_derive"] }

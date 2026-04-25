@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
-use mongodb::Collection;
+use futures_util::StreamExt;
+use mongodb::{Collection, bson::doc};
 use uuid::Uuid;
 
 use exn::ResultExt;
@@ -50,5 +51,14 @@ impl Post {
             .or_raise(|| Error::upstream("Failed to insert post".into()))?;
 
         Ok(())
+    }
+
+    pub async fn get(post_collection: &Collection<Post>) -> exn::Result<Vec<Post>, Error> {
+        let posts = post_collection
+            .find(doc! {})
+            .await
+            .or_raise(|| Error::upstream("Failed to fetch posts".into()))?;
+
+        Result::Ok(todo!())
     }
 }

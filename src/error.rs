@@ -206,7 +206,9 @@ impl IntoResponse for ErrorResponse {
             Source::Authentication(_) => StatusCode::UNAUTHORIZED,
 
             // Database errors
-            // TODO
+            Source::Database(DatabaseError::Serialization | DatabaseError::Deserialization) => {
+                StatusCode::BAD_REQUEST
+            }
 
             // Anything else
             _ => {
