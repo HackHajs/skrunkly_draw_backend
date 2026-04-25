@@ -43,6 +43,7 @@ pub enum DatabaseError {
     Serialization,
     Deserialization,
     Insertion,
+    NotFound,
     Other,
 }
 
@@ -191,7 +192,6 @@ impl IntoResponse for ErrorResponse {
             lowest_level = lower_level;
         }
 
-
         log::warn!("{lowest_level:?}");
 
         #[allow(clippy::option_if_let_else)]
@@ -212,6 +212,8 @@ impl IntoResponse for ErrorResponse {
             Source::Database(DatabaseError::Serialization | DatabaseError::Deserialization) => {
                 StatusCode::BAD_REQUEST
             }
+
+            Source::Database(DatabaseError::NotFound) => StatusCode::NOT_FOUND,
 
             // Anything else
             _ => {

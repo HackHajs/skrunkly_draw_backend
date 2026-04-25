@@ -7,13 +7,9 @@ use axum::{
 };
 
 use crate::{
-    State as Bstate, authentication::Authenticated, error::ErrorResponse, model::post::Post,
+    State as Bstate, api::Id, authentication::Authenticated, error::ErrorResponse,
+    model::post::Post,
 };
-
-#[derive(serde::Serialize, serde::Deserialize)]
-pub struct Id {
-    pub id: mongodb::bson::Uuid,
-}
 
 /// Get all posts from the database
 ///

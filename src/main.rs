@@ -25,6 +25,7 @@ async fn main() {
         .route("/v0/post/all", get(api::post::get_all))
         .route("/v0/post", post(api::post::post))
         .route("/v0/post", delete(api::post::delete))
+        .route("/v0/user", get(api::user::get))
         .route("/v0/user", put(api::user::new))
         .layer(cors_layer)
         .with_state(Arc::new(State::new().await));

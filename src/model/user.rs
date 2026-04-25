@@ -6,7 +6,7 @@ use mongodb::{
 
 use exn::ResultExt;
 
-use crate::error::Error;
+use crate::error::{DatabaseError as DbErr, Error};
 
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct User {
@@ -45,8 +45,8 @@ impl User {
     /// # Errors
     /// Will return an error if the user object is malformed.
     /// Might return an error if there's an issue communicating with the database.
-    pub async fn get(id: Uuid, user_collection: &Collection<Self>) -> exn::Result<Self, Error> {
-        let filter = doc! { "_id" : id };
+    pub async fn get(user_collection: &Collection<Self>, user: Uuid) -> exn::Result<Self, Error> {
+        let filter = doc! { "_id" : user };
         let user = user_collection
             .find_one(filter)
             .await
@@ -55,7 +55,7 @@ impl User {
 
         match user {
             Some(u) => Ok(u),
-            None => Err(Error::upstream("Failed to find user".into()))?,
+            None => Err(Error::database(DbErr::NotFound, "User not found".into()))?,
         }
     }
 }

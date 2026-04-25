@@ -1,9 +1,14 @@
 use std::sync::Arc;
 
-use axum::{Json, extract::State, http::StatusCode};
+use axum::{
+    Json,
+    extract::{Query, State},
+    http::StatusCode,
+};
 
 use crate::{
-    State as Bstate, authentication::Authenticated, error::ErrorResponse, model::user::User,
+    State as Bstate, api::Id, authentication::Authenticated, error::ErrorResponse,
+    model::user::User,
 };
 
 /// Add the user to the database
@@ -19,4 +24,15 @@ pub async fn new(
     user.insert(&state.users, sub).await?;
 
     Ok(StatusCode::OK)
+}
+
+/// Fetch the user's public info
+///
+/// # Errors
+/// Might return an error if there's an issue communicating with the database.
+pub async fn get(
+    State(state): State<Arc<Bstate>>,
+    Query(id): Query<Id>,
+) -> Result<Json<User>, ErrorResponse> {
+    Ok(Json(User::get(&state.users, id.id).await?))
 }

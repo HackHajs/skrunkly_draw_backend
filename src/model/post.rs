@@ -59,14 +59,12 @@ impl Post {
     /// # Errors
     /// Might return an error if there's an issue communicating with the database.
     pub async fn get_all(collection: &Collection<Self>) -> exn::Result<Vec<Self>, Error> {
-
         let mut posts = collection
             .find(doc! {})
             .sort(doc! { "created_at": -1 })
             .await
             .map_err(Error::from)
             .or_raise(|| Error::upstream("Failed to fetch posts".into()))?;
-
 
         let mut post_list: Vec<Self> = Vec::new();
 
