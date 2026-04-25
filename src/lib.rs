@@ -11,6 +11,9 @@ use mongodb::{
 
 use crate::config::CONFIG;
 
+pub const DATABASE_NAME: &str = "skrunkly_draw";
+pub const POST_COLLECTION_NAME: &str = "posts";
+
 pub struct State(pub Client);
 
 impl State {
