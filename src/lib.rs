@@ -1,6 +1,7 @@
 pub mod authentication;
 pub mod config;
 pub mod error;
+pub mod model;
 
 pub struct State;
 
