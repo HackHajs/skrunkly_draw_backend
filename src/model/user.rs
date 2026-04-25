@@ -35,6 +35,7 @@ impl User {
         collection
             .insert_one(self)
             .await
+            .map_err(Error::from)
             .or_raise(|| Error::upstream("Failed to insert user".into()))?;
         Ok(())
     }
@@ -49,6 +50,7 @@ impl User {
         let user = user_collection
             .find_one(filter)
             .await
+            .map_err(Error::from)
             .or_raise(|| Error::upstream("Failed to fetch user".into()))?;
 
         match user {

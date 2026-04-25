@@ -12,7 +12,7 @@ use exn::{ResultExt, bail};
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct Authenticated {
-    pub sub: uuid::Uuid,
+    pub sub: mongodb::bson::Uuid,
     pub role: String,
     // Ignored:
     // aal, amr, app_metadata, aud, email, exp, iat, is_anonymous, iss, phone, sission_id,
