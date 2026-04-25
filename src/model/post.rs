@@ -7,24 +7,20 @@ use exn::ResultExt;
 
 use crate::{error::Error, model::skrunkle::Skrunkle};
 
-#[derive(serde::Serialize, serde::Deserialize, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Default, Debug, Clone)]
 pub struct Post {
-    #[serde(rename = "_id", skip_deserializing)]
+    #[serde(rename = "_id")]
     id: Uuid,
-    #[serde(skip_deserializing)]
-    user: Uuid,
-    #[serde(skip_deserializing)]
-    created_at: DateTime<Utc>,
+    user: Option<Uuid>,
+    created_at: Option<DateTime<Utc>>,
     reply: Option<Reply>,
     mature: bool,
-    #[serde(skip_deserializing)]
-    liked_by: Vec<Uuid>,
-    #[serde(skip_deserializing)]
-    flagged_by: Vec<Uuid>,
+    liked_by: Option<Vec<Uuid>>,
+    flagged_by: Option<Vec<Uuid>>,
     skrunkle: Skrunkle,
 }
 
-#[derive(serde::Deserialize, serde::Serialize, Default)]
+#[derive(serde::Deserialize, serde::Serialize, Default, Debug, Clone)]
 struct Reply {
     parent: Uuid,
     on_feed: bool,
@@ -42,8 +38,11 @@ impl Post {
         user: Uuid,
     ) -> exn::Result<(), Error> {
         self.id = uuid::Uuid::new_v4();
-        self.user = user;
-        self.created_at = Utc::now();
+        self.user = Some(user);
+        self.created_at = Some(Utc::now());
+        self.reply = None;
+        self.liked_by = None;
+        self.liked_by = None;
 
         collection
             .insert_one(self)
@@ -61,7 +60,11 @@ impl Post {
 
         let mut miau: Vec<Post> = Vec::new();
 
-        while let Some(post) = posts.try_next().await.or_raise(|| Error::upstream("Failed to fetch a post".into()))? {
+        while let Some(post) = posts
+            .try_next()
+            .await
+            .or_raise(|| Error::upstream("Failed to fetch a post".into()))?
+        {
             miau.push(post);
         }
 

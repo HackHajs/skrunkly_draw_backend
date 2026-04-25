@@ -6,6 +6,13 @@ use crate::{
     State as Bstate, authentication::Authenticated, error::ErrorResponse, model::post::Post,
 };
 
+pub async fn get(
+    State(state): State<Arc<Bstate>>,
+    Authenticated { .. }: Authenticated,
+) -> Result<Json<Vec<Post>>, ErrorResponse> {
+    Ok(Json(Post::get(&state.posts).await?))
+}
+
 /// Add the post to the database
 ///
 /// # Errors

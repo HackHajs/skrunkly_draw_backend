@@ -2162,6 +2162,7 @@ dependencies = [
  "log",
  "mongodb",
  "serde",
+ "serde_json",
  "tokio",
  "toml",
  "tower-http",
