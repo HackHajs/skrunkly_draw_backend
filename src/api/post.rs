@@ -6,11 +6,16 @@ use crate::{
     State as Bstate, authentication::Authenticated, error::ErrorResponse, model::post::Post,
 };
 
-pub async fn get(
+/// Get all posts from the database
+///
+/// # Errors
+/// Will return an error if the post object is malformed or if the user is unauthenticated.
+/// Might return an error if there's an issue communicating with the database.
+pub async fn get_all(
     State(state): State<Arc<Bstate>>,
     Authenticated { .. }: Authenticated,
 ) -> Result<Json<Vec<Post>>, ErrorResponse> {
-    Ok(Json(Post::get(&state.posts).await?))
+    Ok(Json(Post::get_all(&state.posts).await?))
 }
 
 /// Add the post to the database

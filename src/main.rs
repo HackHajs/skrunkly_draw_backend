@@ -22,7 +22,7 @@ async fn main() {
         .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE]);
 
     let router = Router::new()
-        .route("/v0/post", get(api::post::get))
+        .route("/v0/post/all", get(api::post::get_all))
         .route("/v0/post", post(api::post::post))
         .layer(cors_layer)
         .with_state(Arc::new(State::new().await));
