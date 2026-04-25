@@ -51,7 +51,7 @@ impl Post {
         Ok(())
     }
 
-    /// Add the post to the database
+    /// Get all posts from the database
     ///
     /// # Errors
     /// Will return an error if the post object is malformed or if the user is unauthenticated.
