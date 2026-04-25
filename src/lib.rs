@@ -2,6 +2,7 @@ pub mod api;
 pub mod authentication;
 pub mod config;
 pub mod error;
+pub mod model;
 
 use mongodb::{
     Client,

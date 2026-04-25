@@ -2,7 +2,9 @@ use std::sync::Arc;
 
 use axum::{Json, extract::State, http::StatusCode};
 
-use crate::{State as Bstate, authentication::Authenticated, error::ErrorResponse};
+use crate::{
+    State as Bstate, authentication::Authenticated, error::ErrorResponse, model::post::Post,
+};
 
 /// Add the post to the database
 ///
@@ -12,7 +14,7 @@ use crate::{State as Bstate, authentication::Authenticated, error::ErrorResponse
 pub async fn post(
     State(state): State<Arc<Bstate>>,
     Authenticated { sub, .. }: Authenticated,
-    Json(post): Json<()>,
+    Json(post): Json<Post>,
 ) -> Result<StatusCode, ErrorResponse> {
     /* TODO */
     Ok(StatusCode::OK)

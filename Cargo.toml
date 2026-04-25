@@ -26,4 +26,13 @@ exn = "0.3"
 # Logging
 log = "0.4"
 env_logger = "0.11.10"
+chrono = { version = "0.4.44", features = ["serde"] }
 
+[profile.release]
+lto = 'fat' # Perform link time optimizations for the whole dependency graph
+codegen-units = 1 # Sacrifice compilation speed for a faster binary
+
+[lints.clippy]
+all = "warn"
+pedantic = "warn"
+nursery = "warn"
