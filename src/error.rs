@@ -191,6 +191,9 @@ impl IntoResponse for ErrorResponse {
             lowest_level = lower_level;
         }
 
+
+        log::warn!("{lowest_level:?}");
+
         #[allow(clippy::option_if_let_else)]
         let error: &Error = match lowest_level.error().downcast_ref() {
             Some(error) => error,

@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use uuid::Uuid;
+use mongodb::bson::Uuid; 
 
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct User {

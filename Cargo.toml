@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 # HTTP
 axum = "0.8"
+# axum = { version = "0.8", features = ["macros"] }
 tower-http = { version = "0.6", features = ["cors"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 
@@ -21,7 +22,6 @@ serde = { version = "1", features = ["serde_derive"] }
 toml = "1"
 
 # Types
-uuid = { version = "1", features = ["serde", "rng", "v4"] }
 exn = "0.3"
 
 # Logging

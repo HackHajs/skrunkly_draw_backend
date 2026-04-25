@@ -1,7 +1,9 @@
 use chrono::{DateTime, Utc};
 use futures_util::TryStreamExt;
-use mongodb::{Collection, bson::doc};
-use uuid::Uuid;
+use mongodb::{
+    Collection,
+    bson::{doc, uuid::Uuid},
+};
 
 use exn::ResultExt;
 
@@ -10,7 +12,7 @@ use crate::{error::Error, model::skrunkle::Skrunkle};
 #[derive(serde::Serialize, serde::Deserialize, Default, Debug, Clone)]
 pub struct Post {
     #[serde(rename = "_id")]
-    id: Uuid,
+    id: Option<Uuid>,
     user: Option<Uuid>,
     created_at: Option<DateTime<Utc>>,
     reply: Option<Reply>,
@@ -30,22 +32,23 @@ impl Post {
     /// Add the post to the database
     ///
     /// # Errors
-    /// Will return an error if the post object is malformed or if the user is unauthenticated.
+    /// Will return an error if the post object is malformed.
     /// Might return an error if there's an issue communicating with the database.
     pub async fn insert(
         mut self,
         collection: &Collection<Self>,
         user: Uuid,
     ) -> exn::Result<(), Error> {
-        self.id = uuid::Uuid::new_v4();
+        self.id = Some(Uuid::new());
         self.user = Some(user);
         self.created_at = Some(Utc::now());
         self.liked_by = None;
-        self.liked_by = None;
+        self.flagged_by = None;
 
         collection
             .insert_one(self)
             .await
+            .map_err(Error::from)
             .or_raise(|| Error::upstream("Failed to insert post".into()))?;
 
         Ok(())
@@ -54,24 +57,52 @@ impl Post {
     /// Add the post to the database
     ///
     /// # Errors
-    /// Will return an error if the post object is malformed or if the user is unauthenticated.
     /// Might return an error if there's an issue communicating with the database.
-    pub async fn get_all(post_collection: &Collection<Self>) -> exn::Result<Vec<Self>, Error> {
-        let mut posts = post_collection
+    pub async fn get_all(collection: &Collection<Self>) -> exn::Result<Vec<Self>, Error> {
+
+        let mut posts = collection
             .find(doc! {})
+            .sort(doc! { "created_at": -1 })
             .await
+            .map_err(Error::from)
             .or_raise(|| Error::upstream("Failed to fetch posts".into()))?;
 
-        let mut miau: Vec<Self> = Vec::new();
+
+        let mut post_list: Vec<Self> = Vec::new();
 
         while let Some(post) = posts
             .try_next()
             .await
+            .map_err(Error::from)
             .or_raise(|| Error::upstream("Failed to fetch a post".into()))?
         {
-            miau.push(post);
+            post_list.push(post);
         }
 
-        Ok(miau)
+        Ok(post_list)
+    }
+
+    /// Remove the post from the database
+    ///
+    /// Returns the number of updated documents.
+    ///
+    /// # Errors
+    /// Might return an error if there's an issue communicating with the database.
+    pub async fn delete(
+        collection: &Collection<Self>,
+        post: Uuid,
+        user: Uuid,
+    ) -> exn::Result<u64, Error> {
+        Ok(collection
+            .delete_one(doc! {
+                "$and": [
+                    doc! { "_id": post },
+                    doc! { "user": user }
+                ]
+            })
+            .await
+            .map_err(Error::from)
+            .or_raise(|| Error::upstream("Failed to delete post".into()))?
+            .deleted_count)
     }
 }
