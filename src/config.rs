@@ -1,3 +1,5 @@
+#![allow(clippy::unnecessary_debug_formatting)]
+
 use std::{fs, net::SocketAddr, path::PathBuf, sync::LazyLock};
 
 use axum::http::HeaderValue;

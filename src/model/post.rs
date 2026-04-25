@@ -30,6 +30,11 @@ struct Reply {
 }
 
 impl Post {
+    /// Add the post to the database
+    ///
+    /// # Errors
+    /// Will return an error if the post object is malformed or if the user is unauthenticated.
+    /// Might return an error if there's an issue communicating with the database.
     pub async fn insert(
         mut self,
         collection: &Collection<Self>,

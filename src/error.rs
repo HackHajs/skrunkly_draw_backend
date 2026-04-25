@@ -25,7 +25,7 @@ pub enum Source {
 pub enum AuthenticationError {
     InvalidFormat,
     InvalidIssuer,
-    InvalidAlgorythm,
+    InvalidAlgorithm,
     InvalidSignature,
     InvalidKey,
     InvalidClaim,
@@ -104,7 +104,7 @@ impl From<jsonwebtoken::errors::Error> for Error {
 
             JwtErr::InvalidAlgorithmName | JwtErr::InvalidAlgorithm | JwtErr::MissingAlgorithm => {
                 Self {
-                    error_type: Source::Authentication(AuthenticationError::InvalidAlgorythm),
+                    error_type: Source::Authentication(AuthenticationError::InvalidAlgorithm),
                     message: "Algorythm does not match key id".into(),
                 }
             }
