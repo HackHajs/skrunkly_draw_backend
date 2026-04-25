@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use futures_util::StreamExt;
+use futures_util::TryStreamExt;
 use mongodb::{Collection, bson::doc};
 use uuid::Uuid;
 
@@ -54,11 +54,17 @@ impl Post {
     }
 
     pub async fn get(post_collection: &Collection<Post>) -> exn::Result<Vec<Post>, Error> {
-        let posts = post_collection
+        let mut posts = post_collection
             .find(doc! {})
             .await
             .or_raise(|| Error::upstream("Failed to fetch posts".into()))?;
 
-        Result::Ok(todo!())
+        let mut miau: Vec<Post> = Vec::new();
+
+        while let Some(post) = posts.try_next().await.or_raise(|| Error::upstream("Failed to fetch a post".into()))? {
+            miau.push(post);
+        }
+
+        Ok(miau)
     }
 }
