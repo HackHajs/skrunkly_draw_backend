@@ -128,8 +128,6 @@ impl Post {
 
     /// Fetch the repiles to a post
     ///
-    /// Returns the number of updated documents.
-    ///
     /// # Errors
     /// Might return an error if there's an issue communicating with the database.
     pub async fn replies(
@@ -141,7 +139,7 @@ impl Post {
         };
 
         let mut posts = collection
-            .find(doc! { "reply": doc!{ "parent": post } })
+            .find(doc! { "reply.parent": post, "reply": { "$exists": true } })
             .sort(doc! { "created_at": -1 })
             .await
             .map_err(Error::from)
