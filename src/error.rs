@@ -8,7 +8,7 @@ use exn::Exn;
 #[serde(rename_all = "snake_case")]
 pub struct Error {
     #[serde(rename = "type")]
-    error_type: Source,
+    pub error_type: Source,
     message: String,
 }
 
@@ -43,6 +43,7 @@ pub enum DatabaseError {
     Serialization,
     Deserialization,
     Insertion,
+    Conflict,
     NotFound,
     Other,
 }
@@ -156,6 +157,11 @@ impl From<MongoDBErr> for Error {
                 message: format!("Failed to insert: {err:?}"),
             },
 
+            MdbErrKind::Write(err) => Self {
+                error_type: Source::Database(DatabaseError::Conflict),
+                message: format!("Failed to write the value: {err:?}"),
+            },
+
             err => Self {
                 error_type: Source::Internal,
                 message: format!("{err:?}"),
@@ -165,7 +171,7 @@ impl From<MongoDBErr> for Error {
 }
 
 #[derive(Debug)]
-pub struct ErrorResponse(Exn<Error>);
+pub struct ErrorResponse(pub Exn<Error>);
 
 impl ErrorResponse {
     #[must_use]
@@ -214,6 +220,8 @@ impl IntoResponse for ErrorResponse {
             }
 
             Source::Database(DatabaseError::NotFound) => StatusCode::NOT_FOUND,
+
+            Source::Database(DatabaseError::Conflict) => StatusCode::CONFLICT,
 
             // Anything else
             _ => {

@@ -1,12 +1,12 @@
 #[derive(serde::Serialize, serde::Deserialize, Default, Debug, Clone)]
 pub struct Skrunkle {
-    palette: [String; 8],
-    bg_color: String,
-    strokes: Vec<Stroke>,
+    pub palette: [String; 8],
+    pub bg_color: String,
+    pub strokes: Vec<Stroke>,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Default, Debug, Clone)]
-struct Stroke {
-    color: f64,
-    shape: Vec<[f64; 3]>,
+pub struct Stroke {
+    pub color: f64,
+    pub shape: Vec<[f64; 3]>,
 }

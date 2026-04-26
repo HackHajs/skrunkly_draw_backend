@@ -54,14 +54,36 @@ impl Post {
         Ok(())
     }
 
+    /// Get a post's info
+    ///
+    /// # Errors
+    /// Might return an error if there's an issue communicating with the database.
+    pub async fn get(
+        collection: &Collection<Self>,
+        post: Uuid,
+    ) -> exn::Result<Option<Self>, Error> {
+        collection
+            .find_one(doc! { "_id": post })
+            .sort(doc! { "created_at": -1 })
+            .await
+            .map_err(Error::from)
+            .or_raise(|| Error::upstream("Failed to fetch post".into()))
+    }
+
     /// Get all posts from the database
     ///
     /// # Errors
     /// Might return an error if there's an issue communicating with the database.
     pub async fn get_all(collection: &Collection<Self>) -> exn::Result<Vec<Self>, Error> {
         let mut posts = collection
-            .find(doc! {})
+            .find(doc! {
+                "$or": [
+                    doc! { "reply": null },
+                    doc! { "reply.on_feed": true }
+                ]
+            })
             .sort(doc! { "created_at": -1 })
+            .limit(100)
             .await
             .map_err(Error::from)
             .or_raise(|| Error::upstream("Failed to fetch posts".into()))?;
@@ -102,5 +124,43 @@ impl Post {
             .map_err(Error::from)
             .or_raise(|| Error::upstream("Failed to delete post".into()))?
             .deleted_count)
+    }
+
+    /// Fetch the repiles to a post
+    ///
+    /// Returns the number of updated documents.
+    ///
+    /// # Errors
+    /// Might return an error if there's an issue communicating with the database.
+    pub async fn replies(
+        collection: &Collection<Self>,
+        post: Uuid,
+    ) -> exn::Result<Vec<Self>, Error> {
+        let Some(parent) = Self::get(collection, post).await? else {
+            todo!()
+        };
+
+        let mut posts = collection
+            .find(doc! { "reply": doc!{ "parent": post } })
+            .sort(doc! { "created_at": -1 })
+            .await
+            .map_err(Error::from)
+            .or_raise(|| Error::upstream("Failed to fetch posts".into()))?;
+
+        let mut post_list: Vec<Self> = Vec::new();
+
+        while let Some(mut post) = posts
+            .try_next()
+            .await
+            .map_err(Error::from)
+            .or_raise(|| Error::upstream("Failed to fetch a post".into()))?
+        {
+            post.skrunkle
+                .strokes
+                .append(&mut parent.skrunkle.strokes.clone());
+            post_list.push(post);
+        }
+
+        Ok(post_list)
     }
 }

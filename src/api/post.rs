@@ -7,9 +7,32 @@ use axum::{
 };
 
 use crate::{
-    State as Bstate, api::Id, authentication::Authenticated, error::ErrorResponse,
+    State as Bstate,
+    api::Id,
+    authentication::Authenticated,
+    error::{DatabaseError, Error, ErrorResponse},
     model::post::Post,
 };
+
+/// Get all posts from the database
+///
+/// # Errors
+/// Will return an error if the user is unauthenticated.
+/// Might return an error if there's an issue communicating with the database.
+pub async fn get(
+    State(state): State<Arc<Bstate>>,
+    Json(id): Json<Id>,
+) -> Result<Json<Post>, ErrorResponse> {
+    Post::get(&state.posts, id.id).await?.map_or_else(
+        || {
+            Err(ErrorResponse(exn::Exn::new(Error::database(
+                DatabaseError::NotFound,
+                "Post not found".into(),
+            ))))
+        },
+        |post| Ok(Json(post)),
+    )
+}
 
 /// Get all posts from the database
 ///
@@ -33,6 +56,18 @@ pub async fn post(
     post.insert(&state.posts, sub).await?;
 
     Ok(StatusCode::OK)
+}
+
+/// Returns a list of replies to the given post
+///
+/// # Errors
+/// Will return an error if the post id query is missing or if the user is unauthenticated.
+/// Might return an error if there's an issue communicating with the database.
+pub async fn replies(
+    State(state): State<Arc<Bstate>>,
+    Query(post): Query<Id>,
+) -> Result<Json<Vec<Post>>, ErrorResponse> {
+    Ok(Json(Post::replies(&state.posts, post.id).await?))
 }
 
 /// Remove the post from the database

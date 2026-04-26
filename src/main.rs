@@ -22,11 +22,14 @@ async fn main() {
         .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE]);
 
     let router = Router::new()
+        .route("/v0/post", get(api::post::get))
         .route("/v0/post/all", get(api::post::get_all))
+        .route("/v0/post/replies", get(api::post::replies))
         .route("/v0/post", post(api::post::post))
         .route("/v0/post", delete(api::post::delete))
         .route("/v0/user", get(api::user::get))
-        .route("/v0/user", put(api::user::new))
+        .route("/v0/user", put(api::user::upsert))
+        .route("/v0/user", delete(api::user::delete))
         .layer(cors_layer)
         .with_state(Arc::new(State::new().await));
 
