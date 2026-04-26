@@ -153,11 +153,13 @@ impl Post {
             .map_err(Error::from)
             .or_raise(|| Error::upstream("Failed to fetch a post".into()))?
         {
-            let mut parent = parent.clone();
+            
+            let mut appended_strokes = parent.skrunkle.strokes.clone();
+            appended_strokes.append(&mut post.skrunkle.strokes);
 
-            parent.skrunkle.strokes.append(&mut post.skrunkle.strokes);
+            post.skrunkle.strokes = appended_strokes;
 
-            post_list.push(parent);
+            post_list.push(post);
         }
 
         Ok(post_list)
